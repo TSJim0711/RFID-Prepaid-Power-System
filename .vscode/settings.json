@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "usart.h": "c",
-        "delay.h": "c"
+        "delay.h": "c",
+        "lv_port_disp.h": "c",
+        "i2c.h": "c"
     }
 }
