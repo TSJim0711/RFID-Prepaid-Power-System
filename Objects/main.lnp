@@ -1,5 +1,6 @@
 --cpu Cortex-M4.fp
 ".\objects\lv_port_disp.o"
+".\objects\lv_port_indev.o"
 ".\objects\tft.o"
 ".\objects\tft_small.o"
 ".\objects\button.o"
@@ -10,6 +11,7 @@
 ".\objects\delay.o"
 ".\objects\oled.o"
 ".\objects\i2c.o"
+".\objects\tft_touch.o"
 ".\objects\main.o"
 ".\objects\lv_init.o"
 ".\objects\lv_group.o"

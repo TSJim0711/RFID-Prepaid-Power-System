@@ -416,6 +416,11 @@
               <FileType>1</FileType>
               <FilePath>.\examples\porting\lv_port_disp.c</FilePath>
             </File>
+            <File>
+              <FileName>lv_port_indev.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\examples\porting\lv_port_indev.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -480,6 +485,11 @@
               <FileName>i2c.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\hardware\system\i2c\i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>tft_touch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hardware\lcd\tft_touch.c</FilePath>
             </File>
           </Files>
         </Group>

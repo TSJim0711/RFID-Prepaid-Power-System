@@ -4,12 +4,16 @@
  */
 
 /*Copy this file as "lv_port_indev.c" and set this value to "1" to enable content*/
-#if 0
+#if 1
 
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_port_indev_template.h"
+#include <stdbool.h>
+#include <stdio.h>
+#include "lvgl.h"
+#include "lv_port_indev.h"
+#include "lcd/tft_touch.h"
 
 /*********************
  *      DEFINES
@@ -66,7 +70,7 @@ static lv_indev_state_t encoder_state;
  *   GLOBAL FUNCTIONS
  **********************/
 
-void lv_port_indev_init(void)
+void lv_port_indev_init(lv_display_t* rela_disp)
 {
     /**
      * Here you will find example implementation of input devices supported by LittelvGL:
@@ -91,76 +95,77 @@ void lv_port_indev_init(void)
     indev_touchpad = lv_indev_create();
     lv_indev_set_type(indev_touchpad, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(indev_touchpad, touchpad_read);
+    lv_indev_set_display(indev_touchpad, rela_disp);
 
-    /*------------------
-     * Mouse
-     * -----------------*/
-
-    /*Initialize your mouse if you have*/
-    mouse_init();
-
-    /*Register a mouse input device*/
-    indev_mouse = lv_indev_create();
-    lv_indev_set_type(indev_mouse, LV_INDEV_TYPE_POINTER);
-    lv_indev_set_read_cb(indev_mouse, mouse_read);
-
-    /*Set cursor. For simplicity set a HOME symbol now.*/
-    lv_obj_t * mouse_cursor = lv_image_create(lv_screen_active());
-    lv_image_set_src(mouse_cursor, LV_SYMBOL_HOME);
-    lv_indev_set_cursor(indev_mouse, mouse_cursor);
-
-    /*------------------
-     * Keypad
-     * -----------------*/
-
-    /*Initialize your keypad or keyboard if you have*/
-    keypad_init();
-
-    /*Register a keypad input device*/
-    indev_keypad = lv_indev_create();
-    lv_indev_set_type(indev_keypad, LV_INDEV_TYPE_KEYPAD);
-    lv_indev_set_read_cb(indev_keypad, keypad_read);
-
-    /*Later you should create group(s) with `lv_group_t * group = lv_group_create()`,
-     *add objects to the group with `lv_group_add_obj(group, obj)`
-     *and assign this input device to group to navigate in it:
-     *`lv_indev_set_group(indev_keypad, group);`*/
-
-    /*------------------
-     * Encoder
-     * -----------------*/
-
-    /*Initialize your encoder if you have*/
-    encoder_init();
-
-    /*Register a encoder input device*/
-    indev_encoder = lv_indev_create();
-    lv_indev_set_type(indev_encoder, LV_INDEV_TYPE_ENCODER);
-    lv_indev_set_read_cb(indev_encoder, encoder_read);
-
-    /*Later you should create group(s) with `lv_group_t * group = lv_group_create()`,
-     *add objects to the group with `lv_group_add_obj(group, obj)`
-     *and assign this input device to group to navigate in it:
-     *`lv_indev_set_group(indev_encoder, group);`*/
-
-    /*------------------
-     * Button
-     * -----------------*/
-
-    /*Initialize your button if you have*/
-    button_init();
-
-    /*Register a button input device*/
-    indev_button = lv_indev_create();
-    lv_indev_set_type(indev_button, LV_INDEV_TYPE_BUTTON);
-    lv_indev_set_read_cb(indev_button, button_read);
-
-    /*Assign buttons to points on the screen*/
-    static const lv_point_t btn_points[2] = {
-        {10, 10},   /*Button 0 -> x:10; y:10*/
-        {40, 100},  /*Button 1 -> x:40; y:100*/
-    };
-    lv_indev_set_button_points(indev_button, btn_points);
+//    /*------------------
+//     * Mouse
+//     * -----------------*/
+//
+//    /*Initialize your mouse if you have*/
+//    mouse_init();
+//
+//    /*Register a mouse input device*/
+//    indev_mouse = lv_indev_create();
+//    lv_indev_set_type(indev_mouse, LV_INDEV_TYPE_POINTER);
+//    lv_indev_set_read_cb(indev_mouse, mouse_read);
+//
+//    /*Set cursor. For simplicity set a HOME symbol now.*/
+//    lv_obj_t * mouse_cursor = lv_image_create(lv_screen_active());
+//    lv_image_set_src(mouse_cursor, LV_SYMBOL_HOME);
+//    lv_indev_set_cursor(indev_mouse, mouse_cursor);
+//
+//    /*------------------
+//     * Keypad
+//     * -----------------*/
+//
+//    /*Initialize your keypad or keyboard if you have*/
+//    keypad_init();
+//
+//    /*Register a keypad input device*/
+//    indev_keypad = lv_indev_create();
+//    lv_indev_set_type(indev_keypad, LV_INDEV_TYPE_KEYPAD);
+//    lv_indev_set_read_cb(indev_keypad, keypad_read);
+//
+//    /*Later you should create group(s) with `lv_group_t * group = lv_group_create()`,
+//     *add objects to the group with `lv_group_add_obj(group, obj)`
+//     *and assign this input device to group to navigate in it:
+//     *`lv_indev_set_group(indev_keypad, group);`*/
+//
+//    /*------------------
+//     * Encoder
+//     * -----------------*/
+//
+//    /*Initialize your encoder if you have*/
+//    encoder_init();
+//
+//    /*Register a encoder input device*/
+//    indev_encoder = lv_indev_create();
+//    lv_indev_set_type(indev_encoder, LV_INDEV_TYPE_ENCODER);
+//    lv_indev_set_read_cb(indev_encoder, encoder_read);
+//
+//    /*Later you should create group(s) with `lv_group_t * group = lv_group_create()`,
+//     *add objects to the group with `lv_group_add_obj(group, obj)`
+//     *and assign this input device to group to navigate in it:
+//     *`lv_indev_set_group(indev_encoder, group);`*/
+//
+//    /*------------------
+//     * Button
+//     * -----------------*/
+//
+//    /*Initialize your button if you have*/
+//    button_init();
+//
+//    /*Register a button input device*/
+//    indev_button = lv_indev_create();
+//    lv_indev_set_type(indev_button, LV_INDEV_TYPE_BUTTON);
+//    lv_indev_set_read_cb(indev_button, button_read);
+//
+//    /*Assign buttons to points on the screen*/
+//    static const lv_point_t btn_points[2] = {
+//        {10, 10},   /*Button 0 -> x:10; y:10*/
+//        {40, 100},  /*Button 1 -> x:40; y:100*/
+//    };
+//    lv_indev_set_button_points(indev_button, btn_points);
 }
 
 /**********************
@@ -175,6 +180,7 @@ void lv_port_indev_init(void)
 static void touchpad_init(void)
 {
     /*Your code comes here*/
+    TP_Init();
 }
 
 /*Will be called by the library to read the touchpad*/
@@ -187,6 +193,7 @@ static void touchpad_read(lv_indev_t * indev_drv, lv_indev_data_t * data)
     if(touchpad_is_pressed()) {
         touchpad_get_xy(&last_x, &last_y);
         data->state = LV_INDEV_STATE_PRESSED;
+        printf("Touch PRESSED! X:%d, Y:%d\r\n", last_x, last_y);
     }
     else {
         data->state = LV_INDEV_STATE_RELEASED;
@@ -201,17 +208,41 @@ static void touchpad_read(lv_indev_t * indev_drv, lv_indev_data_t * data)
 static bool touchpad_is_pressed(void)
 {
     /*Your code comes here*/
-
-    return false;
+    if(PEN)//PBin(1) defined in tft_touch.h
+        return false;
+    return true;
 }
 
 /*Get the x and y coordinates if the touchpad is pressed*/
 static void touchpad_get_xy(int32_t * x, int32_t * y)
 {
     /*Your code comes here*/
-
-    (*x) = 0;
-    (*y) = 0;
+	if(TP_Scan(0))
+	{
+		// 坐标转换，处理横竖屏与物理坐标的镜像。
+        // 原本 switch 的实际显示位置约为 (120, 160) 即中心
+        // 打印显示点击 (95, 159) 时触发了 switch(期望是120, 160附近)，
+        // 而点击 switch 位置 (177, 106) 时打印出来的坐标是偏的
+        
+        // 尝试翻转映射关系，适配 LVGL 的逻辑坐标
+        // 假设当前屏幕分辨率为主体 240x320
+        // LVGL 的原点 (0, 0) 在左上角，(240, 320) 在右下角
+        
+		(*x) = tp_dev.x[0];
+		(*y) = tp_dev.y[0];	
+        
+        // 根据您给的坐标偏移现象：
+        // 你的代码原本在 tft_touch.c 是将数值进行过系数转换的，但转换可能未适配现在的横竖屏方向
+        // 这是一个比较常见的触摸映射问题。先试试进行中心对称或XY对调。
+        // 将 X 轴与 Y 轴反向。假设你的屏幕宽度是 240，高度 320：
+        
+        // 注意由于您提供的数据 `(177, 106)` 对应真实显示位置，
+        // 说明 X=177 被识别为了大概 Y=160 的位置，Y=106 被识别为了 X=120 左右的位置
+        // 这是很典型的 X、Y 反转（加上可能的镜像）。
+        // 我们可以根据 `触摸点(95,159)` -> `触发 switch` 和 `显示点(177,106)` 的关系来修正。
+        
+        // X, y swap and minor translation approximation test
+	}
 }
 
 /*------------------

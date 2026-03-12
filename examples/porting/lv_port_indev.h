@@ -35,6 +35,8 @@ extern "C" {
  * GLOBAL PROTOTYPES
  **********************/
 void lv_port_indev_init(void);
+lv_display_t* lv_port_disp_main_init(void)
+lv_display_t* lv_port_disp_sub_init(void)
 
 /**********************
  *      MACROS

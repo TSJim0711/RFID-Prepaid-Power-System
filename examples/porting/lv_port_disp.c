@@ -47,9 +47,11 @@ static void disp_flush_small(lv_display_t * disp_drv, const lv_area_t * area, ui
 lv_display_t* lv_port_disp_main_init(void)
 {
 	LCD_Init();
+    LCD_Display_Dir(0);//Landscape
+	LCD_Scan_Dir(U2D_R2L);//Up2down, Left2right
     //Create a display and set a flush_cb
 	static uint8_t buf_1[240 * 320 * BYTE_PER_PIXEL / 10];           /*A buffer for 10 rows*/
-	lv_display_t * disp_main = lv_display_create(240, 320);
+	lv_display_t * disp_main = lv_display_create(320, 240);
 	lv_display_set_flush_cb(disp_main, disp_flush_main);
     lv_display_set_buffers(disp_main, buf_1, NULL, sizeof(buf_1), LV_DISPLAY_RENDER_MODE_PARTIAL);
 	return disp_main;
@@ -61,7 +63,7 @@ lv_display_t* lv_port_disp_sub_init(void)
     lcd_init();
     //Create a display and set a flush_cb
     static uint8_t buf_1_small[80 * 160 * BYTE_PER_PIXEL / 10];           /*A buffer for 10 rows*/
-    lv_display_t * disp_sub = lv_display_create(80, 160);
+    lv_display_t * disp_sub = lv_display_create(160, 80);
 	lv_display_set_flush_cb(disp_sub, disp_flush_small);
     lv_display_set_buffers(disp_sub, buf_1_small, NULL, sizeof(buf_1_small), LV_DISPLAY_RENDER_MODE_PARTIAL);
     return disp_sub;
@@ -117,11 +119,13 @@ static void disp_flush_small(lv_display_t * disp_drv, const lv_area_t * area, ui
         uint16_t * color_p = (uint16_t *)px_map;//from u8 to u16 pointer 2 byte per ++
         int32_t x;
         int32_t y;
-        for(y = area->y1; y <= area->y2; y++) {
+for(y = area->y1; y <= area->y2; y++) {
             for(x = area->x1; x <= area->x2; x++) {
-                /*Put a pixel to the display. For example:*/
-                /*put_px(x, y, *px_map)*/
-				lcd_draw_point(x, y, *color_p);
+                //x=y;y=Y-y-1
+                int32_t phys_x = (80) - y;
+                int32_t phys_y = x;
+                // 使用转换后的物理坐标画点
+                lcd_draw_point(phys_x, phys_y, *color_p);
                 color_p++;
             }
         }
