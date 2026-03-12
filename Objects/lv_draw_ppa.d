@@ -1,0 +1,6 @@
+.\objects\lv_draw_ppa.o: src\draw\espressif\ppa\lv_draw_ppa.c
+.\objects\lv_draw_ppa.o: src\draw\espressif\ppa\lv_draw_ppa_private.h
+.\objects\lv_draw_ppa.o: src\draw\espressif\ppa\../../../lv_conf_internal.h
+.\objects\lv_draw_ppa.o: src\draw\espressif\ppa\../../../lv_conf_kconfig.h
+.\objects\lv_draw_ppa.o: .\examples\porting\../../lv_conf.h
+.\objects\lv_draw_ppa.o: src\draw\espressif\ppa\lv_draw_ppa.h

@@ -1,0 +1,17 @@
+.\objects\lv_os_none.o: src\osal\lv_os_none.c
+.\objects\lv_os_none.o: src\osal\../lv_conf_internal.h
+.\objects\lv_os_none.o: src\osal\../lv_conf_kconfig.h
+.\objects\lv_os_none.o: .\examples\porting\../../lv_conf.h
+.\objects\lv_os_none.o: src\osal\lv_os_private.h
+.\objects\lv_os_none.o: src\osal\lv_os.h
+.\objects\lv_os_none.o: src\osal\../misc/lv_types.h
+.\objects\lv_os_none.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\objects\lv_os_none.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\objects\lv_os_none.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\objects\lv_os_none.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\inttypes.h
+.\objects\lv_os_none.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\objects\lv_os_none.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+.\objects\lv_os_none.o: src\osal\lv_os_none.h
+.\objects\lv_os_none.o: src\osal\../misc/lv_timer.h
+.\objects\lv_os_none.o: src\osal\../misc/../tick/lv_tick.h
+.\objects\lv_os_none.o: src\osal\../misc/lv_ll.h

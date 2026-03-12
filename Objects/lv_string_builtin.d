@@ -1,0 +1,16 @@
+.\objects\lv_string_builtin.o: src\stdlib\builtin\lv_string_builtin.c
+.\objects\lv_string_builtin.o: src\stdlib\builtin\../../lv_conf_internal.h
+.\objects\lv_string_builtin.o: src\stdlib\builtin\../../lv_conf_kconfig.h
+.\objects\lv_string_builtin.o: .\examples\porting\../../lv_conf.h
+.\objects\lv_string_builtin.o: src\stdlib\builtin\../../misc/lv_assert.h
+.\objects\lv_string_builtin.o: src\stdlib\builtin\../../misc/lv_log.h
+.\objects\lv_string_builtin.o: src\stdlib\builtin\../../misc/lv_types.h
+.\objects\lv_string_builtin.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\objects\lv_string_builtin.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\objects\lv_string_builtin.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\objects\lv_string_builtin.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\inttypes.h
+.\objects\lv_string_builtin.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\objects\lv_string_builtin.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+.\objects\lv_string_builtin.o: src\stdlib\builtin\../../misc/../stdlib/lv_mem.h
+.\objects\lv_string_builtin.o: src\stdlib\builtin\../../misc/../stdlib/lv_string.h
+.\objects\lv_string_builtin.o: src\stdlib\builtin\../../misc/lv_math.h

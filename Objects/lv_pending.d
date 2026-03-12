@@ -1,0 +1,17 @@
+.\objects\lv_pending.o: src\misc\lv_pending.c
+.\objects\lv_pending.o: src\misc\lv_pending.h
+.\objects\lv_pending.o: src\misc\lv_types.h
+.\objects\lv_pending.o: src\misc\../lv_conf_internal.h
+.\objects\lv_pending.o: src\misc\../lv_conf_kconfig.h
+.\objects\lv_pending.o: .\examples\porting\../../lv_conf.h
+.\objects\lv_pending.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\objects\lv_pending.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\objects\lv_pending.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\objects\lv_pending.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\inttypes.h
+.\objects\lv_pending.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\objects\lv_pending.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+.\objects\lv_pending.o: src\misc\lv_array.h
+.\objects\lv_pending.o: src\misc\lv_assert.h
+.\objects\lv_pending.o: src\misc\lv_log.h
+.\objects\lv_pending.o: src\misc\../stdlib/lv_mem.h
+.\objects\lv_pending.o: src\misc\../stdlib/lv_string.h

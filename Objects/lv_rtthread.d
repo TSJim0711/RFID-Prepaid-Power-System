@@ -1,0 +1,14 @@
+.\objects\lv_rtthread.o: src\osal\lv_rtthread.c
+.\objects\lv_rtthread.o: src\osal\lv_os_private.h
+.\objects\lv_rtthread.o: src\osal\../lv_conf_internal.h
+.\objects\lv_rtthread.o: src\osal\../lv_conf_kconfig.h
+.\objects\lv_rtthread.o: .\examples\porting\../../lv_conf.h
+.\objects\lv_rtthread.o: src\osal\lv_os.h
+.\objects\lv_rtthread.o: src\osal\../misc/lv_types.h
+.\objects\lv_rtthread.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\objects\lv_rtthread.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\objects\lv_rtthread.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\objects\lv_rtthread.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\inttypes.h
+.\objects\lv_rtthread.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+.\objects\lv_rtthread.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+.\objects\lv_rtthread.o: src\osal\lv_os_none.h
