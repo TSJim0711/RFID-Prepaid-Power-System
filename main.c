@@ -11,13 +11,16 @@
 #include "oled_small/oled.h"
 #include "tim/tim.h"
 
+lv_display_t* disp_1;
+lv_obj_t * card[4];
+lv_obj_t * num[4];
+lv_obj_t * stat[4];
+
+void display_sub_init();
 int main()
 {
 	// led初始化
 	led_init();	
-	
-	//button初始化
-	key_init();
 	
 	// 串口1初始化波特率为115200bps
 	usart1_init(115200);
@@ -28,12 +31,12 @@ int main()
 	// 串口延迟一会，确保芯片内部完成全部初始化,printf无乱码输出
 	delay_ms(500);
 
-	printf("\r\n LVGL Loading\r\n");
+	printf("\r\n LVGL Loading...\r\n");
 
 	lv_init();
 	lv_display_t* disp_main=lv_port_disp_main_init();
-	lv_display_t* disp_1=lv_port_disp_sub_init();
-	lv_port_indev_init(disp_main);
+	disp_1=lv_port_disp_sub_init();
+	lv_port_indev_init(disp_main, disp_1);
 	
 	LV_FONT_DECLARE(lv_font_montserrat_28);
 	LV_FONT_DECLARE(lv_font_montserrat_10);
@@ -76,25 +79,24 @@ int main()
     lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(cont, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    for(int i = 1; i <= 4; i++) {
-        lv_obj_t * card = lv_obj_create(cont);
-        lv_obj_set_size(card, 65, 120);
-        lv_obj_set_style_radius(card, 4, 0);
-        lv_obj_set_style_border_width(card, 0, 0);
-        
-        lv_obj_set_style_bg_color(card, i==1?lv_palette_main(LV_PALETTE_GREEN):lv_palette_main(LV_PALETTE_GREY), 0);
+    for(int i = 0; i < 4; i++) {
+        card[i] = lv_obj_create(cont);
+        lv_obj_set_size(card[i] , 65, 120);
+        lv_obj_set_style_radius(card[i] , 4, 0);
+        lv_obj_set_style_border_width(card[i] , 0, 0);
+        lv_obj_set_style_bg_color(card[i] , i==1-1?lv_palette_main(LV_PALETTE_GREEN):lv_palette_main(LV_PALETTE_GREY), 0);
 
-        lv_obj_t * num = lv_label_create(card);
-        lv_label_set_text_fmt(num, "%d", i);
-        lv_obj_set_style_text_font(num, &lv_font_montserrat_28, 0);
-        lv_obj_set_style_text_color(num, lv_color_white(), 0);
-        lv_obj_align(num, LV_ALIGN_TOP_MID, 0, 10);
+        num[i] = lv_label_create(card[i]);
+        lv_label_set_text_fmt(num[i], "%d", i+1);//i start from 0, here start from 1, so +1
+        lv_obj_set_style_text_font(num[i], &lv_font_montserrat_28, 0);
+        lv_obj_set_style_text_color(num[i], lv_color_white(), 0);
+        lv_obj_align(num[i], LV_ALIGN_TOP_MID, 0, 10);
 
-        lv_obj_t * stat = lv_label_create(card);
-        lv_label_set_text(stat, (i == 1) ? "READY" : "NOT\nFOUND");
-        lv_obj_set_style_text_font(stat, &lv_font_montserrat_10, 0);
-        lv_obj_set_style_text_color(stat, lv_color_white(), 0);
-        lv_obj_align(stat, LV_ALIGN_BOTTOM_MID, 0, -5);
+        stat[i] = lv_label_create(card[i]);
+        lv_label_set_text(stat[i], (i == 1-1) ? "READY" : "NOT\nFOUND");
+        lv_obj_set_style_text_font(stat[i], &lv_font_montserrat_10, 0);
+        lv_obj_set_style_text_color(stat[i], lv_color_white(), 0);
+        lv_obj_align(stat[i], LV_ALIGN_BOTTOM_MID, 0, -5);
     }
 
     //footer
@@ -108,25 +110,44 @@ int main()
     lv_obj_center(reg_label);
 
 	//small screen
+	display_sub_init();
+
+	OLED_Clear();
+	
+	int i=0;
+	while(1)
+	{
+		lv_timer_handler();
+		delay_ms(3);
+	}
+}
+
+lv_obj_t * blue_rect;
+lv_obj_t * swc_mode_switcher;
+lv_obj_t * label_text;
+lv_obj_t * label_arrow;
+static void using_mode_switch(lv_event_t * e);
+void display_sub_init()
+{
 	lv_display_set_default(disp_1);
     lv_obj_t * screen = lv_scr_act();
     lv_obj_set_style_bg_color(screen, lv_color_white(), 0);
 
     //arrow
-    lv_obj_t * label_arrow = lv_label_create(screen);
+    label_arrow = lv_label_create(screen);
     lv_label_set_text(label_arrow, LV_SYMBOL_LEFT);
     lv_obj_align(label_arrow, LV_ALIGN_LEFT_MID, 10, 0); 
     lv_obj_set_style_text_color(label_arrow, lv_color_black(), 0);
 
     //txt
-    lv_obj_t * label_text = lv_label_create(screen);
+    label_text = lv_label_create(screen);
     lv_label_set_text(label_text, "Insert\nYour\nCARD"); 
     lv_obj_set_style_text_line_space(label_text, 2, 0);//2px away each col
     lv_obj_align(label_text, LV_ALIGN_LEFT_MID, 30, 0);
     lv_obj_set_style_text_color(label_text, lv_color_black(), 0);
 
 	//righter
-    lv_obj_t * blue_rect = lv_obj_create(screen);
+	blue_rect=lv_obj_create(screen);
     lv_obj_set_size(blue_rect, 64, 80);//160 * 40% = 64
     lv_obj_align(blue_rect, LV_ALIGN_RIGHT_MID, 0, 0);
     lv_obj_set_style_bg_color(blue_rect, lv_palette_main(LV_PALETTE_GREEN), 0);
@@ -142,12 +163,37 @@ int main()
     lv_obj_set_style_text_color(label_num, lv_color_white(), 0);
     lv_obj_center(label_num);
 
-	OLED_Clear();
-	
-	int i=0;
-	while(1)
+	//invisible switch to swich mode, trigger by button. Note that this screen is untouchable , so no mis-click
+	swc_mode_switcher = lv_switch_create(screen);
+    lv_obj_align(swc_mode_switcher, LV_ALIGN_TOP_LEFT, 0, 0); 
+	lv_obj_set_size(swc_mode_switcher,160,20);
+	lv_obj_set_style_opa(swc_mode_switcher, 0, 0);//set widget invisible
+	lv_obj_add_event_cb(swc_mode_switcher, using_mode_switch, LV_EVENT_VALUE_CHANGED, NULL);
+
+}
+
+static void using_mode_switch(lv_event_t * e)
+{
+	printf("Btn Pressed Comf\r\n");
+	lv_obj_t * obj = lv_event_get_target(e);
+	if(lv_obj_has_state(obj, LV_STATE_CHECKED))
 	{
-		lv_timer_handler();
-		delay_ms(3);
+		//disp_main
+		lv_obj_set_style_bg_color(card[0], lv_palette_main(LV_PALETTE_BLUE), 0);
+		lv_label_set_text(stat[0], "In\nUSE");
+		//disp_1
+		lv_obj_set_style_bg_color(blue_rect, lv_palette_main(LV_PALETTE_BLUE), 0);
+		lv_obj_set_style_opa(label_arrow, 0, 0);//hide the arrow
+		lv_label_set_text(label_text, "Enjoy!"); 
+	}
+	else
+	{
+		//disp_main
+		lv_obj_set_style_bg_color(card[0], lv_palette_main(LV_PALETTE_GREEN),0);
+		lv_label_set_text(stat[0],"READY");
+		//disp_1
+		lv_obj_set_style_bg_color(blue_rect, lv_palette_main(LV_PALETTE_GREEN), 0);
+		lv_label_set_text(label_text, "Insert\nYour\nCARD"); 
+		lv_obj_set_style_opa(label_arrow, 255, 0);//show the arrow
 	}
 }

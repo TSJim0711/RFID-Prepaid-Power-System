@@ -3,6 +3,8 @@
         "usart.h": "c",
         "delay.h": "c",
         "lv_port_disp.h": "c",
-        "i2c.h": "c"
+        "i2c.h": "c",
+        "sys.h": "c",
+        "tim.h": "c"
     }
 }
