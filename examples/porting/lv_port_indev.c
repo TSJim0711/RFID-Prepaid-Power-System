@@ -14,11 +14,12 @@
 #include "lvgl.h"
 #include "lv_port_indev.h"
 #include "lcd/tft_touch.h"
+#include "rfid/MFRC522.h"
 
 /*********************
  *      DEFINES
  *********************/
-
+#define SLOT_1_IN_USE_FLAG 10001 //DISP1's seat in use?
 /**********************
  *      TYPEDEFS
  **********************/
@@ -50,6 +51,9 @@ static void button_read(lv_indev_t * indev, lv_indev_data_t * data);
 static int8_t button_get_pressed_id(void);
 static bool button_is_pressed(uint8_t id);
 
+static void rfid_reader_init(void);
+static void rfid_read_handler(lv_indev_t * indev_drv, lv_indev_data_t * data);
+
 /**********************
  *  STATIC VARIABLES
  **********************/
@@ -58,6 +62,7 @@ lv_indev_t * indev_mouse;
 lv_indev_t * indev_keypad;
 lv_indev_t * indev_encoder;
 lv_indev_t * indev_button;
+lv_indev_t * indev_rfid_scanner;
 
 static int32_t encoder_diff;
 static lv_indev_state_t encoder_state;
@@ -167,6 +172,19 @@ void lv_port_indev_init(lv_display_t* disp_main, lv_display_t* disp_sub)
     };
     lv_indev_set_display(indev_button, disp_sub);//affect to small lcd screen
     lv_indev_set_button_points(indev_button, btn_points);
+
+    //-------
+    //RFID reader
+    //-------
+    rfid_reader_init();
+    indev_rfid_scanner = lv_indev_create();
+    lv_indev_set_type(indev_rfid_scanner, LV_INDEV_TYPE_BUTTON);
+    lv_indev_set_read_cb(indev_rfid_scanner, rfid_read_handler);
+    lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 50);//read once per 1s
+    static const lv_point_t rfid_sim_click[1] = {{10, 10}};//if read card, the click 10,10 same as button 0
+    lv_indev_set_display(indev_rfid_scanner, disp_sub);//affect to small lcd screen
+    lv_indev_set_button_points(indev_rfid_scanner, rfid_sim_click);
+
 }
 
 /**********************
@@ -221,9 +239,28 @@ static void touchpad_get_xy(int32_t * x, int32_t * y)
 	if(TP_Scan(0))
 	{
 		// 坐标转换，处理横竖屏与物理坐标的镜像。
-        //portrait->landscape
+        // 原本 switch 的实际显示位置约为 (120, 160) 即中心
+        // 打印显示点击 (95, 159) 时触发了 switch(期望是120, 160附近)，
+        // 而点击 switch 位置 (177, 106) 时打印出来的坐标是偏的
+        
+        // 尝试翻转映射关系，适配 LVGL 的逻辑坐标
+        // 假设当前屏幕分辨率为主体 240x320
+        // LVGL 的原点 (0, 0) 在左上角，(240, 320) 在右下角
+        
 		(*x) = tp_dev.x[0];
 		(*y) = tp_dev.y[0];	
+        
+        // 根据您给的坐标偏移现象：
+        // 你的代码原本在 tft_touch.c 是将数值进行过系数转换的，但转换可能未适配现在的横竖屏方向
+        // 这是一个比较常见的触摸映射问题。先试试进行中心对称或XY对调。
+        // 将 X 轴与 Y 轴反向。假设你的屏幕宽度是 240，高度 320：
+        
+        // 注意由于您提供的数据 `(177, 106)` 对应真实显示位置，
+        // 说明 X=177 被识别为了大概 Y=160 的位置，Y=106 被识别为了 X=120 左右的位置
+        // 这是很典型的 X、Y 反转（加上可能的镜像）。
+        // 我们可以根据 `触摸点(95,159)` -> `触发 switch` 和 `显示点(177,106)` 的关系来修正。
+        
+        // X, y swap and minor translation approximation test
 	}
 }
 
@@ -363,7 +400,6 @@ static void encoder_handler(void)
 static void button_init(void)
 {
     /*Your code comes here*/
-    key_init();
 }
 
 /*Will be called by the library to read the button*/
@@ -377,7 +413,6 @@ static void button_read(lv_indev_t * indev_drv, lv_indev_data_t * data)
 
     if(btn_act >= 0) {
         data->state = LV_INDEV_STATE_PRESSED;
-        printf("Btn Pressed\r\n");
         last_btn = btn_act;
     }
     else {
@@ -393,8 +428,8 @@ static int8_t button_get_pressed_id(void)
 {
     uint8_t i;
 
-    /*Check to buttons see which is being pressed*/
-    for(i = 0; i < 1; i++) {
+    /*Check to buttons see which is being pressed (assume there are 2 buttons)*/
+    for(i = 0; i < 2; i++) {
         /*Return the pressed button's ID*/
         if(button_is_pressed(i)) {
             return i;
@@ -410,9 +445,48 @@ static bool button_is_pressed(uint8_t id)
 {
 
     /*Your code comes here*/
-    if (PAin(0)==0)
+    if (PAin(0)==1)
         return true;
     return false;
+}
+
+//-----
+//RFID reader
+//-----
+void rfid_reader_init(void)
+{
+    MFRC522_Initializtion();
+}
+
+u8  card_pydebuf[2];
+u8  card_numberbuf[5];
+u8  card_key0Abuf[6];
+u8  card_writebuf[16];
+u8  card_readbuf[18];
+extern uint32_t SLOT_1_IN_USE_SIG;
+void rfid_read_handler(lv_indev_t * indev_drv, lv_indev_data_t * data)
+{
+    u8 status, card_size;
+	status=MFRC522_Request(0x52, card_pydebuf);//find card
+	printf("Read card status: %d\r\n", status);
+	if(status==0)//if found card
+	{
+		status=MFRC522_Anticoll(card_numberbuf);//select card to read, prevent multi caard reading mixed	
+		card_size=MFRC522_SelectTag(card_numberbuf);//commu with selected card
+		status=MFRC522_Auth(0x60, 4, card_key0Abuf, card_numberbuf);//unlock sector
+		status=MFRC522_Read(4, card_readbuf);//read data from card
+		//MFRC522_Halt();//read once only (untill card take away and put back)
+        if(data->state==LV_INDEV_STATE_RELEASED)
+        {
+            lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)1);//send 1 msg, note that I use store data with addr, it is clever, gemini said so ;)
+            lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 500);//if there is a card, less read freq, for safty: 可能烧卡
+        }
+        return;
+    }
+    printf("Card Removed\r\n");
+    lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)0);//send 0 msg
+    lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 50);
+    return;
 }
 
 #else /*Enable this file at the top*/

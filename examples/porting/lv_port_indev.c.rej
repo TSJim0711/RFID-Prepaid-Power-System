@@ -1,0 +1,130 @@
+diff a/examples/porting/lv_port_indev.c b/examples/porting/lv_port_indev.c	(rejected hunks)
+@@ -70,7 +70,7 @@
+  *   GLOBAL FUNCTIONS
+  **********************/
+ 
+-void lv_port_indev_init(lv_display_t* rela_disp)
++void lv_port_indev_init(lv_display_t* disp_main, lv_display_t* disp_sub)
+ {
+     /**
+      * Here you will find example implementation of input devices supported by LittelvGL:
+@@ -95,7 +95,7 @@
+     indev_touchpad = lv_indev_create();
+     lv_indev_set_type(indev_touchpad, LV_INDEV_TYPE_POINTER);
+     lv_indev_set_read_cb(indev_touchpad, touchpad_read);
+-    lv_indev_set_display(indev_touchpad, rela_disp);
++    lv_indev_set_display(indev_touchpad, disp_main);
+ 
+ //    /*------------------
+ //     * Mouse
+@@ -148,24 +148,25 @@
+ //     *and assign this input device to group to navigate in it:
+ //     *`lv_indev_set_group(indev_encoder, group);`*/
+ //
+-//    /*------------------
+-//     * Button
+-//     * -----------------*/
+-//
+-//    /*Initialize your button if you have*/
+-//    button_init();
+-//
+-//    /*Register a button input device*/
+-//    indev_button = lv_indev_create();
+-//    lv_indev_set_type(indev_button, LV_INDEV_TYPE_BUTTON);
+-//    lv_indev_set_read_cb(indev_button, button_read);
+-//
+-//    /*Assign buttons to points on the screen*/
+-//    static const lv_point_t btn_points[2] = {
+-//        {10, 10},   /*Button 0 -> x:10; y:10*/
+-//        {40, 100},  /*Button 1 -> x:40; y:100*/
+-//    };
+-//    lv_indev_set_button_points(indev_button, btn_points);
++    /*------------------
++     * Button
++     * -----------------*/
++
++    /*Initialize your button if you have*/
++    button_init();
++
++    /*Register a button input device*/
++    indev_button = lv_indev_create();
++    lv_indev_set_type(indev_button, LV_INDEV_TYPE_BUTTON);
++    lv_indev_set_read_cb(indev_button, button_read);
++
++    /*Assign buttons to points on the screen*/
++    static const lv_point_t btn_points[2] = {
++        {10, 10},   /*Button 0 -> x:10; y:10*/
++        {40, 100},  /*Button 1 -> x:40; y:100*/
++    };
++    lv_indev_set_display(indev_button, disp_sub);//affect to small lcd screen
++    lv_indev_set_button_points(indev_button, btn_points);
+ }
+ 
+ /**********************
+@@ -220,28 +221,9 @@
+ 	if(TP_Scan(0))
+ 	{
+ 		// 坐标转换，处理横竖屏与物理坐标的镜像。
+-        // 原本 switch 的实际显示位置约为 (120, 160) 即中心
+-        // 打印显示点击 (95, 159) 时触发了 switch(期望是120, 160附近)，
+-        // 而点击 switch 位置 (177, 106) 时打印出来的坐标是偏的
+-        
+-        // 尝试翻转映射关系，适配 LVGL 的逻辑坐标
+-        // 假设当前屏幕分辨率为主体 240x320
+-        // LVGL 的原点 (0, 0) 在左上角，(240, 320) 在右下角
+-        
++        //portrait->landscape
+ 		(*x) = tp_dev.x[0];
+ 		(*y) = tp_dev.y[0];	
+-        
+-        // 根据您给的坐标偏移现象：
+-        // 你的代码原本在 tft_touch.c 是将数值进行过系数转换的，但转换可能未适配现在的横竖屏方向
+-        // 这是一个比较常见的触摸映射问题。先试试进行中心对称或XY对调。
+-        // 将 X 轴与 Y 轴反向。假设你的屏幕宽度是 240，高度 320：
+-        
+-        // 注意由于您提供的数据 `(177, 106)` 对应真实显示位置，
+-        // 说明 X=177 被识别为了大概 Y=160 的位置，Y=106 被识别为了 X=120 左右的位置
+-        // 这是很典型的 X、Y 反转（加上可能的镜像）。
+-        // 我们可以根据 `触摸点(95,159)` -> `触发 switch` 和 `显示点(177,106)` 的关系来修正。
+-        
+-        // X, y swap and minor translation approximation test
+ 	}
+ }
+ 
+@@ -381,6 +363,7 @@
+ static void button_init(void)
+ {
+     /*Your code comes here*/
++    key_init();
+ }
+ 
+ /*Will be called by the library to read the button*/
+@@ -394,6 +377,7 @@
+ 
+     if(btn_act >= 0) {
+         data->state = LV_INDEV_STATE_PRESSED;
++        printf("Btn Pressed\r\n");
+         last_btn = btn_act;
+     }
+     else {
+@@ -409,8 +393,8 @@
+ {
+     uint8_t i;
+ 
+-    /*Check to buttons see which is being pressed (assume there are 2 buttons)*/
+-    for(i = 0; i < 2; i++) {
++    /*Check to buttons see which is being pressed*/
++    for(i = 0; i < 1; i++) {
+         /*Return the pressed button's ID*/
+         if(button_is_pressed(i)) {
+             return i;
+@@ -426,7 +410,8 @@
+ {
+ 
+     /*Your code comes here*/
+-
++    if (PAin(0)==0)
++        return true;
+     return false;
+ }
+ 

@@ -491,6 +491,11 @@
               <FileType>1</FileType>
               <FilePath>.\hardware\lcd\tft_touch.c</FilePath>
             </File>
+            <File>
+              <FileName>MFRC522.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hardware\rfid\MFRC522.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

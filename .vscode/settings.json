@@ -5,6 +5,12 @@
         "lv_port_disp.h": "c",
         "i2c.h": "c",
         "sys.h": "c",
-        "tim.h": "c"
+        "tim.h": "c",
+        "lv_port_indev.h": "c",
+        "stdbool.h": "c",
+        "mfrc522.h": "c",
+        "button.h": "c",
+        "stdio.h": "c",
+        "led.h": "c"
     }
 }

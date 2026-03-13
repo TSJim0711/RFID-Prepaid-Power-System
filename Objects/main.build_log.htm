@@ -22,33 +22,31 @@ Dialog DLL:      TCM.DLL V1.14.4.0
  
 <h2>Project:</h2>
 c:\Users\TSUi\Documents\YueQian\lib\STM32\LVGL\lvgl-9.5.0\main.uvprojx
-Project File Date:  03/12/2026
+Project File Date:  03/13/2026
 
 <h2>Output:</h2>
 Build target 'Target 1'
-compiling main.c...
-.\hardware\oled_small/oled.h(68): warning:  #1295-D: Deprecated declaration Picture - give arg types
-  void Picture();
-.\hardware\oled_small/oled.h(69): warning:  #1295-D: Deprecated declaration IIC_Start - give arg types
-  void IIC_Start();
-.\hardware\oled_small/oled.h(70): warning:  #1295-D: Deprecated declaration IIC_Stop - give arg types
-  void IIC_Stop();
-.\hardware\oled_small/oled.h(75): warning:  #1295-D: Deprecated declaration IIC_Wait_Ack - give arg types
-  void IIC_Wait_Ack();
-.\hardware\oled_small/oled.h(77): warning:  #1-D: last line of file ends without a newline
-         
-main.c(19): warning:  #1295-D: Deprecated declaration display_sub_init - give arg types
-  void display_sub_init();
-main.c(39): warning:  #223-D: function "lv_port_indev_init" declared implicitly
-        lv_port_indev_init(disp_main, disp_1);
-main.c(117): warning:  #177-D: variable "i" was declared but never referenced
-        int i=0;
-main.c(199): warning:  #1-D: last line of file ends without a newline
-  }
-main.c: 9 warnings, 0 errors
+compiling lv_port_indev.c...
+examples\porting\lv_port_indev.c(469): warning:  #550-D: variable "card_size" was set but never used
+      u8 status, card_size;
+examples\porting\lv_port_indev.c(272): warning:  #177-D: function "mouse_init" was declared but never referenced
+  static void mouse_init(void)
+examples\porting\lv_port_indev.c(278): warning:  #177-D: function "mouse_read" was declared but never referenced
+  static void mouse_read(lv_indev_t * indev_drv, lv_indev_data_t * data)
+examples\porting\lv_port_indev.c(314): warning:  #177-D: function "keypad_init" was declared but never referenced
+  static void keypad_init(void)
+examples\porting\lv_port_indev.c(320): warning:  #177-D: function "keypad_read" was declared but never referenced
+  static void keypad_read(lv_indev_t * indev_drv, lv_indev_data_t * data)
+examples\porting\lv_port_indev.c(373): warning:  #177-D: function "encoder_init" was declared but never referenced
+  static void encoder_init(void)
+examples\porting\lv_port_indev.c(379): warning:  #177-D: function "encoder_read" was declared but never referenced
+  static void encoder_read(lv_indev_t * indev_drv, lv_indev_data_t * data)
+examples\porting\lv_port_indev.c(387): warning:  #177-D: function "encoder_handler" was declared but never referenced
+  static void encoder_handler(void)
+examples\porting\lv_port_indev.c: 8 warnings, 0 errors
 linking...
-Program Size: Code=252580 RO-data=66896 RW-data=336 ZI-data=86968  
-".\Objects\main.axf" - 0 Error(s), 9 Warning(s).
+Program Size: Code=254212 RO-data=66904 RW-data=360 ZI-data=86984  
+".\Objects\main.axf" - 0 Error(s), 8 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -60,16 +58,16 @@ Package Vendor: ARM
 
 Package Vendor: Keil
                 http://www.keil.com/pack/Keil.STM32F4xx_DFP.1.0.8.pack
-                Keil::Device:StdPeriph Drivers:ADC:1.3.0
+                Keil::Device:StdPeriph Drivers:Framework:1.3.1
                 STMicroelectronics STM32F4 Series Device Support, Drivers and Examples
-   * Component: ADC Version: 1.3.0
-   * Component: Startup Version: 1.3.1
    * Component: Framework Version: 1.3.1
-   * Component: GPIO Version: 1.3.0
-   * Component: USART Version: 1.3.0
-   * Component: FSMC Version: 1.3.0
+   * Component: Startup Version: 1.3.1
+   * Component: ADC Version: 1.3.0
    * Component: RCC Version: 1.3.0
    * Component: TIM Version: 1.3.0
+   * Component: USART Version: 1.3.0
+   * Component: GPIO Version: 1.3.0
+   * Component: FSMC Version: 1.3.0
 
 <h2>Collection of Component include folders:</h2>
   c:\Users\TSUi\Documents\YueQian\lib\STM32\LVGL\lvgl-9.5.0\RTE
@@ -83,43 +81,43 @@ Package Vendor: Keil
    * Component: ARM::CMSIS:CORE:3.40.0
       Source file:   CMSIS\UserCodeTemplates\ARM\ITM_Retarget.c
 
-   * Component: Keil::Device:StdPeriph Drivers:ADC:1.3.0
-      Include file:  Device\StdPeriph_Driver\inc\stm32f4xx_adc.h
-      Source file:   Device\StdPeriph_Driver\src\stm32f4xx_adc.c
+   * Component: Keil::Device:StdPeriph Drivers:Framework:1.3.1
+      Include file:  Device\StdPeriph_Driver\templates\stm32f4xx_it.h
+      Source file:   Device\StdPeriph_Driver\templates\stm32f4xx_conf.h
+      Source file:   Device\StdPeriph_Driver\templates\stm32f4xx_it.c
+      Source file:   Device\StdPeriph_Driver\src\misc.c
 
    * Component: Keil::Device:Startup:1.3.1
+      Include file:  Device\Include\stm32f4xx.h
+      Source file:   Device\Source\system_stm32f4xx.c
+      Include file:  RTE_Driver\Config\RTE_Device.h
       Source file:   Device\Source\ARM\startup_stm32f40_41xxx.s
       Source file:   Device\Source\ARM\STM32F40xxx_41xxx_OPT.s
       Source file:   Device\Source\ARM\STM32F4xx_OTP.s
-      Source file:   Device\Source\system_stm32f4xx.c
-      Include file:  RTE_Driver\Config\RTE_Device.h
-      Include file:  Device\Include\stm32f4xx.h
 
-   * Component: Keil::Device:StdPeriph Drivers:Framework:1.3.1
-      Source file:   Device\StdPeriph_Driver\src\misc.c
-      Source file:   Device\StdPeriph_Driver\templates\stm32f4xx_it.c
-      Source file:   Device\StdPeriph_Driver\templates\stm32f4xx_conf.h
-      Include file:  Device\StdPeriph_Driver\templates\stm32f4xx_it.h
+   * Component: Keil::Device:StdPeriph Drivers:ADC:1.3.0
+      Source file:   Device\StdPeriph_Driver\src\stm32f4xx_adc.c
+      Include file:  Device\StdPeriph_Driver\inc\stm32f4xx_adc.h
 
-   * Component: Keil::Device:StdPeriph Drivers:GPIO:1.3.0
-      Include file:  Device\StdPeriph_Driver\inc\stm32f4xx_gpio.h
-      Source file:   Device\StdPeriph_Driver\src\stm32f4xx_gpio.c
+   * Component: Keil::Device:StdPeriph Drivers:RCC:1.3.0
+      Source file:   Device\StdPeriph_Driver\src\stm32f4xx_rcc.c
+      Include file:  Device\StdPeriph_Driver\inc\stm32f4xx_rcc.h
+
+   * Component: Keil::Device:StdPeriph Drivers:TIM:1.3.0
+      Source file:   Device\StdPeriph_Driver\src\stm32f4xx_tim.c
+      Include file:  Device\StdPeriph_Driver\inc\stm32f4xx_tim.h
 
    * Component: Keil::Device:StdPeriph Drivers:USART:1.3.0
-      Include file:  Device\StdPeriph_Driver\inc\stm32f4xx_usart.h
       Source file:   Device\StdPeriph_Driver\src\stm32f4xx_usart.c
+      Include file:  Device\StdPeriph_Driver\inc\stm32f4xx_usart.h
+
+   * Component: Keil::Device:StdPeriph Drivers:GPIO:1.3.0
+      Source file:   Device\StdPeriph_Driver\src\stm32f4xx_gpio.c
+      Include file:  Device\StdPeriph_Driver\inc\stm32f4xx_gpio.h
 
    * Component: Keil::Device:StdPeriph Drivers:FSMC:1.3.0
       Source file:   Device\StdPeriph_Driver\src\stm32f4xx_fsmc.c
       Include file:  Device\StdPeriph_Driver\inc\stm32f4xx_fsmc.h
-
-   * Component: Keil::Device:StdPeriph Drivers:RCC:1.3.0
-      Include file:  Device\StdPeriph_Driver\inc\stm32f4xx_rcc.h
-      Source file:   Device\StdPeriph_Driver\src\stm32f4xx_rcc.c
-
-   * Component: Keil::Device:StdPeriph Drivers:TIM:1.3.0
-      Include file:  Device\StdPeriph_Driver\inc\stm32f4xx_tim.h
-      Source file:   Device\StdPeriph_Driver\src\stm32f4xx_tim.c
 </pre>
 </body>
 </html>

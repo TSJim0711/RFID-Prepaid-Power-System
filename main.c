@@ -126,12 +126,16 @@ lv_obj_t * blue_rect;
 lv_obj_t * swc_mode_switcher;
 lv_obj_t * label_text;
 lv_obj_t * label_arrow;
+uint32_t SLOT_1_IN_USE_SIG;//DISP1's seat in use singal
 static void using_mode_switch(lv_event_t * e);
 void display_sub_init()
 {
 	lv_display_set_default(disp_1);
     lv_obj_t * screen = lv_scr_act();
     lv_obj_set_style_bg_color(screen, lv_color_white(), 0);
+
+    SLOT_1_IN_USE_SIG=lv_event_register_id();
+    lv_obj_add_event_cb(lv_layer_sys(), using_mode_switch, (lv_event_code_t)SLOT_1_IN_USE_SIG, NULL);//subscribe to slot in use msg
 
     //arrow
     label_arrow = lv_label_create(screen);
@@ -162,22 +166,15 @@ void display_sub_init()
 	lv_obj_set_style_text_font(label_num, &lv_font_montserrat_28, 0);
     lv_obj_set_style_text_color(label_num, lv_color_white(), 0);
     lv_obj_center(label_num);
-
-	//invisible switch to swich mode, trigger by button. Note that this screen is untouchable , so no mis-click
-	swc_mode_switcher = lv_switch_create(screen);
-    lv_obj_align(swc_mode_switcher, LV_ALIGN_TOP_LEFT, 0, 0); 
-	lv_obj_set_size(swc_mode_switcher,160,20);
-	lv_obj_set_style_opa(swc_mode_switcher, 0, 0);//set widget invisible
-	lv_obj_add_event_cb(swc_mode_switcher, using_mode_switch, LV_EVENT_VALUE_CHANGED, NULL);
-
 }
 
 static void using_mode_switch(lv_event_t * e)
 {
-	printf("Btn Pressed Comf\r\n");
-	lv_obj_t * obj = lv_event_get_target(e);
-	if(lv_obj_has_state(obj, LV_STATE_CHECKED))
+	uintptr_t value = (uintptr_t)lv_event_get_param(e);//data store as addr
+    printf("Slot status :%d\r\n",value);
+	if(value==1)//so just read it
 	{
+        printf("Slot status changed: in use\r\n");
 		//disp_main
 		lv_obj_set_style_bg_color(card[0], lv_palette_main(LV_PALETTE_BLUE), 0);
 		lv_label_set_text(stat[0], "In\nUSE");
@@ -186,8 +183,9 @@ static void using_mode_switch(lv_event_t * e)
 		lv_obj_set_style_opa(label_arrow, 0, 0);//hide the arrow
 		lv_label_set_text(label_text, "Enjoy!"); 
 	}
-	else
+	else if(value==0)
 	{
+        printf("Slot status changed: ready\r\n");
 		//disp_main
 		lv_obj_set_style_bg_color(card[0], lv_palette_main(LV_PALETTE_GREEN),0);
 		lv_label_set_text(stat[0],"READY");
@@ -195,5 +193,6 @@ static void using_mode_switch(lv_event_t * e)
 		lv_obj_set_style_bg_color(blue_rect, lv_palette_main(LV_PALETTE_GREEN), 0);
 		lv_label_set_text(label_text, "Insert\nYour\nCARD"); 
 		lv_obj_set_style_opa(label_arrow, 255, 0);//show the arrow
-	}
+	}else
+        printf("Unexpect msg value.\r\n");
 }

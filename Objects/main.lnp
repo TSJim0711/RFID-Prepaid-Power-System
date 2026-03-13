@@ -12,6 +12,7 @@
 ".\objects\oled.o"
 ".\objects\i2c.o"
 ".\objects\tft_touch.o"
+".\objects\mfrc522.o"
 ".\objects\main.o"
 ".\objects\lv_init.o"
 ".\objects\lv_group.o"
