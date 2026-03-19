@@ -209,6 +209,7 @@
 .\objects\lv_port_indev.o: .\src\../src/lv_api_map_v9_3.h
 .\objects\lv_port_indev.o: .\src\../src/lv_api_map_v9_4.h
 .\objects\lv_port_indev.o: examples\porting\lv_port_indev.h
+.\objects\lv_port_indev.o: .\src\lvgl/lvgl.h
 .\objects\lv_port_indev.o: .\hardware\lcd/tft_touch.h
 .\objects\lv_port_indev.o: .\hardware\system\sys.h
 .\objects\lv_port_indev.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include\stm32f4xx.h
@@ -218,7 +219,7 @@
 .\objects\lv_port_indev.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmSimd.h
 .\objects\lv_port_indev.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include\system_stm32f4xx.h
 .\objects\lv_port_indev.o: .\RTE\Device\STM32F407ZE\stm32f4xx_conf.h
-.\objects\lv_port_indev.o: c:\Users\TSUi\Documents\YueQian\lib\STM32\LVGL\lvgl-9.5.0\RTE\RTE_Components.h
+.\objects\lv_port_indev.o: C:\Users\TSUi\Documents\YueQian\lib\STM32\LVGL\lvgl-9.5.0\RTE\RTE_Components.h
 .\objects\lv_port_indev.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_adc.h
 .\objects\lv_port_indev.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include\stm32f4xx.h
 .\objects\lv_port_indev.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_gpio.h

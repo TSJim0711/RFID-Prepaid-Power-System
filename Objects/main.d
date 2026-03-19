@@ -209,6 +209,8 @@
 .\objects\main.o: src/lv_api_map_v9_4.h
 .\objects\main.o: .\examples\porting\lv_port_disp.h
 .\objects\main.o: .\src\lvgl.h
+.\objects\main.o: .\examples\porting\lv_port_indev.h
+.\objects\main.o: .\src\lvgl/lvgl.h
 .\objects\main.o: .\hardware\system\usart/usart.h
 .\objects\main.o: .\hardware\system\delay/delay.h
 .\objects\main.o: .\hardware\system\i2c/i2c.h
@@ -223,7 +225,7 @@
 .\objects\main.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include\core_cmSimd.h
 .\objects\main.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include\system_stm32f4xx.h
 .\objects\main.o: .\RTE\Device\STM32F407ZE\stm32f4xx_conf.h
-.\objects\main.o: c:\Users\TSUi\Documents\YueQian\lib\STM32\LVGL\lvgl-9.5.0\RTE\RTE_Components.h
+.\objects\main.o: C:\Users\TSUi\Documents\YueQian\lib\STM32\LVGL\lvgl-9.5.0\RTE\RTE_Components.h
 .\objects\main.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_adc.h
 .\objects\main.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include\stm32f4xx.h
 .\objects\main.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_gpio.h
@@ -234,3 +236,5 @@
 .\objects\main.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_fsmc.h
 .\objects\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\objects\main.o: .\hardware\system\tim/tim.h
+.\objects\main.o: ui/ui_register.h
+.\objects\main.o: ui/ui_add_value.h

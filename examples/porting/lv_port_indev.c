@@ -180,7 +180,7 @@ void lv_port_indev_init(lv_display_t* disp_main, lv_display_t* disp_sub)
     indev_rfid_scanner = lv_indev_create();
     lv_indev_set_type(indev_rfid_scanner, LV_INDEV_TYPE_BUTTON);
     lv_indev_set_read_cb(indev_rfid_scanner, rfid_read_handler);
-    lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 50);//read once per 1s
+    lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 100);//read once per 0.1s
     static const lv_point_t rfid_sim_click[1] = {{10, 10}};//if read card, the click 10,10 same as button 0
     lv_indev_set_display(indev_rfid_scanner, disp_sub);//affect to small lcd screen
     lv_indev_set_button_points(indev_rfid_scanner, rfid_sim_click);
@@ -458,35 +458,108 @@ void rfid_reader_init(void)
     MFRC522_Initializtion();
 }
 
+
 u8  card_pydebuf[2];
 u8  card_numberbuf[5];
-u8  card_key0Abuf[6];
+u8  card_key0Abuf[6]={0xff,0xff,0xff,0xff,0xff,0xff};//for safty, not set any passcode
 u8  card_writebuf[16];
 u8  card_readbuf[18];
 extern uint32_t SLOT_1_IN_USE_SIG;
+
+task rfid_reader_task;
+bool card_present=false;
+
 void rfid_read_handler(lv_indev_t * indev_drv, lv_indev_data_t * data)
 {
     u8 status, card_size;
-	status=MFRC522_Request(0x52, card_pydebuf);//find card
-	printf("Read card status: %d\r\n", status);
-	if(status==0)//if found card
+	if(card_present==false)//if found card
 	{
+		status = MFRC522_Request(0x52, card_pydebuf);//check if card on scanner
+		printf("Read card status: %d\r\n", status);
+		if(status!=0)//not found card
+		{
+			printf("No Card Read.\r\n");
+			Write_MFRC522(CommandReg, PCD_IDLE);//clear cmd s
+			ClearBitMask(Status2Reg, 0x08);//shut down auth layer
+			return;
+		}
 		status=MFRC522_Anticoll(card_numberbuf);//select card to read, prevent multi caard reading mixed	
 		card_size=MFRC522_SelectTag(card_numberbuf);//commu with selected card
-		status=MFRC522_Auth(0x60, 4, card_key0Abuf, card_numberbuf);//unlock sector
-		status=MFRC522_Read(4, card_readbuf);//read data from card
-		//MFRC522_Halt();//read once only (untill card take away and put back)
-        if(data->state==LV_INDEV_STATE_RELEASED)
-        {
-            lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)1);//send 1 msg, note that I use store data with addr, it is clever, gemini said so ;)
-            lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 500);//if there is a card, less read freq, for safty: 可能烧卡
-        }
-        return;
+		status=MFRC522_Auth(0x60, 4, card_key0Abuf, card_numberbuf);//unlock sector 1 aka block 4~6
+		printf("RFID Task:%d\r\n",rfid_reader_task);
+		if(rfid_reader_task==NORMAL)
+		{
+			printf("Reading\r\n");
+			status=MFRC522_Read(4, card_readbuf);//read data from card
+			if(data->state==LV_INDEV_STATE_RELEASED)
+			{
+				lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)1);//send 1 msg, note that I use store data with addr, it is clever, gemini said so
+				lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 500);
+				card_present=true;
+			}
+		}
+		else if(rfid_reader_task==REGISTRATION)
+		{
+			status=0;//0 is good return from MFRC522
+			printf("Registing\r\n");
+			printf("Status1:%d\r\n",status);
+			memset(card_writebuf, 0, 16);
+			card_writebuf[0] = 2; //assign id:2, balance:0
+			status=MFRC522_Write(4,card_writebuf);
+			printf("Status2:%d\r\n",status);
+			if(status==0)
+			{
+				memset(card_writebuf, 0, 16); //assign balance:0, just for cleaning up block 2 in case random data
+				status=MFRC522_Write(5,card_writebuf);
+				printf("Status3:%d\r\n",status);
+				if(status==0)
+				{
+					printf("Register Done.\r\n");
+					rfid_reader_task = NORMAL;
+					MFRC522_Halt();//sleep the card 
+				}
+			}
+		}
+		else//if larger/eql 1, treat as top up value
+		{
+			printf("Topping up\r\n");
+			status=0;
+			status=MFRC522_Read(5, card_readbuf);
+			printf("Status1:%d\r\n",status);
+			if(status==0)
+			{
+				//cal total balance in card
+				uint32_t balance=0;
+				balance = (uint32_t)card_readbuf[0] | ((uint32_t)card_readbuf[1] << 8) | ((uint32_t)card_readbuf[2] << 16);
+				//add value
+				balance+=rfid_reader_task;
+				memset(card_writebuf, 0, sizeof(card_writebuf));//clean up buffer
+				card_writebuf[0] = (uint8_t)(balance & 0xFF);//save new balance to write buffer
+				card_writebuf[1] = (uint8_t)((balance >> 8) & 0xFF);
+				card_writebuf[2] = (uint8_t)((balance >> 16) & 0xFF);
+				//re-write
+				status=MFRC522_Write(5,card_writebuf);
+				printf("Status2:%d\r\n",status);
+				if(status==0)
+				{
+					printf("Top up done.\r\n");
+					rfid_reader_task = NORMAL;
+					MFRC522_Halt();//sleep the card
+				}
+			}
+		}
     }
-    printf("Card Removed\r\n");
-    lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)0);//send 0 msg
-    lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 50);
-    return;
+	else if(card_present==true)//only rfid_reader_task==NORMAL will set card_present =1
+	{
+		status=MFRC522_Read(4, card_readbuf);
+		if(status!=0)//read failed = card exist no more
+		{
+			printf("read failed \r\n");
+			card_present=false;
+			lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)0);//send 0 msg, disp_1 show insert card
+			lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 100);
+		}
+	}
 }
 
 #else /*Enable this file at the top*/

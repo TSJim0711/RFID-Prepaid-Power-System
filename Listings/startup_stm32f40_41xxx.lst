@@ -869,7 +869,7 @@ ARM Macro Assembler    Page 14
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
 erwork --depend=.\objects\startup_stm32f40_41xxx.d -o.\objects\startup_stm32f40
-_41xxx.o -Ic:\Users\TSUi\Documents\YueQian\lib\STM32\LVGL\lvgl-9.5.0\RTE -Ic:\U
+_41xxx.o -IC:\Users\TSUi\Documents\YueQian\lib\STM32\LVGL\lvgl-9.5.0\RTE -IC:\U
 sers\TSUi\Documents\YueQian\lib\STM32\LVGL\lvgl-9.5.0\RTE\Device\STM32F407ZE -I
 C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include -IC:\Keil_v5\ARM\PACK\Keil\ST
 M32F4xx_DFP\1.0.8\Device\Include -IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8

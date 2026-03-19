@@ -2,6 +2,7 @@
 
 #include "lvgl.h"
 #include "lv_port_disp.h"
+#include "lv_port_indev.h"
 
 #include "usart/usart.h"
 #include "delay/delay.h"
@@ -10,6 +11,9 @@
 #include "btn/button.h"
 #include "oled_small/oled.h"
 #include "tim/tim.h"
+
+#include "ui/ui_register.h"
+#include "ui/ui_add_value.h"
 
 lv_display_t* disp_1;
 lv_obj_t * card[4];
@@ -99,15 +103,39 @@ int main()
         lv_obj_align(stat[i], LV_ALIGN_BOTTOM_MID, 0, -5);
     }
 
-    //footer
-    lv_obj_t * btn_reg = lv_btn_create(scr);
-    lv_obj_set_size(btn_reg, 300, 35);
-    lv_obj_align(btn_reg, LV_ALIGN_BOTTOM_MID, 0, -5);
-    lv_obj_set_style_bg_color(btn_reg, lv_color_hex(0x3498DB), 0);
+	//footer
+    lv_obj_t * footer = lv_obj_create(scr);
+    lv_obj_set_size(footer, lv_pct(100), 50); // 宽度100%，高度略大于按钮
+    lv_obj_align(footer, LV_ALIGN_BOTTOM_MID, 0, -5);
+    lv_obj_set_style_border_width(footer, 0, 0);
+    lv_obj_set_style_pad_all(footer, 0, 0);
+    lv_obj_set_style_pad_column(footer, 10, 0); // 设置两个按钮之间的间距
+	//flex layout in obj
+    lv_obj_set_layout(footer, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(footer, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(footer, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
+    //reg btn
+    lv_obj_t * btn_reg = lv_btn_create(footer);
+    lv_obj_set_size(btn_reg, 140, 35);
+    lv_obj_set_style_bg_color(btn_reg, lv_color_hex(0x3498DB), 0);
+	lv_obj_add_event_cb(btn_reg, ui_show_register, LV_EVENT_CLICKED, NULL);
+	ui_preload_register(scr);
+	
     lv_obj_t * reg_label = lv_label_create(btn_reg);
     lv_label_set_text(reg_label, "REGISTER");
     lv_obj_center(reg_label);
+
+    //add val btn
+    lv_obj_t * btn_add = lv_btn_create(footer);
+    lv_obj_set_size(btn_add, 140, 35);
+    lv_obj_set_style_bg_color(btn_add, lv_color_hex(0x3498DB), 0);
+	lv_obj_add_event_cb(btn_add, ui_show_add_value, LV_EVENT_CLICKED, NULL);
+	ui_preload_add_value(scr);
+	
+    lv_obj_t * add_label = lv_label_create(btn_add);
+    lv_label_set_text(add_label, "Top UP");
+    lv_obj_center(add_label);
 
 	//small screen
 	display_sub_init();
@@ -168,31 +196,39 @@ void display_sub_init()
     lv_obj_center(label_num);
 }
 
-static void using_mode_switch(lv_event_t * e)
+
+int is_using=0;
+task cur_task=NORMAL;
+
+void using_mode_switch(lv_event_t * e)
 {
 	uintptr_t value = (uintptr_t)lv_event_get_param(e);//data store as addr
-    printf("Slot status :%d\r\n",value);
 	if(value==1)//so just read it
 	{
-        printf("Slot status changed: in use\r\n");
 		//disp_main
 		lv_obj_set_style_bg_color(card[0], lv_palette_main(LV_PALETTE_BLUE), 0);
 		lv_label_set_text(stat[0], "In\nUSE");
 		//disp_1
 		lv_obj_set_style_bg_color(blue_rect, lv_palette_main(LV_PALETTE_BLUE), 0);
-		lv_obj_set_style_opa(label_arrow, 0, 0);//hide the arrow
+		lv_label_set_text(label_arrow, "");//hide the arrow
 		lv_label_set_text(label_text, "Enjoy!"); 
+		is_using=1;
 	}
 	else if(value==0)
 	{
-        printf("Slot status changed: ready\r\n");
 		//disp_main
 		lv_obj_set_style_bg_color(card[0], lv_palette_main(LV_PALETTE_GREEN),0);
 		lv_label_set_text(stat[0],"READY");
 		//disp_1
 		lv_obj_set_style_bg_color(blue_rect, lv_palette_main(LV_PALETTE_GREEN), 0);
 		lv_label_set_text(label_text, "Insert\nYour\nCARD"); 
-		lv_obj_set_style_opa(label_arrow, 255, 0);//show the arrow
-	}else
-        printf("Unexpect msg value.\r\n");
+		lv_label_set_text(label_arrow, LV_SYMBOL_LEFT);//show the arrow
+		is_using=0;
+	}
+	else if(value==3)//disp_1 tells user not to tap
+	{
+		lv_obj_set_style_bg_color(blue_rect, lv_palette_main(LV_PALETTE_RED), 0);
+		lv_label_set_text(label_text, "If not\nYours.\nDo\nnot Tap."); 
+		lv_label_set_text(label_arrow, LV_SYMBOL_CLOSE);//show cross
+	}
 }
