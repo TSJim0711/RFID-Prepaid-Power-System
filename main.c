@@ -60,7 +60,7 @@ int main()
     lv_obj_align(header, LV_ALIGN_TOP_MID, 0, 0);
 
     lv_obj_t * title = lv_label_create(header);
-    lv_label_set_text(title, "XYZ Network Cafe");
+    lv_label_set_text(title, "Party Room Rental");
     lv_obj_set_style_text_color(title, lv_color_white(), 0);
     lv_obj_align(title, LV_ALIGN_LEFT_MID, 10, 0);
 
@@ -171,13 +171,6 @@ void display_sub_init()
     lv_obj_align(label_arrow, LV_ALIGN_LEFT_MID, 10, 0); 
     lv_obj_set_style_text_color(label_arrow, lv_color_black(), 0);
 
-    //txt
-    label_text = lv_label_create(screen);
-    lv_label_set_text(label_text, "Insert\nYour\nCARD"); 
-    lv_obj_set_style_text_line_space(label_text, 2, 0);//2px away each col
-    lv_obj_align(label_text, LV_ALIGN_LEFT_MID, 30, 0);
-    lv_obj_set_style_text_color(label_text, lv_color_black(), 0);
-
 	//righter
 	blue_rect=lv_obj_create(screen);
     lv_obj_set_size(blue_rect, 64, 80);//160 * 40% = 64
@@ -194,6 +187,13 @@ void display_sub_init()
 	lv_obj_set_style_text_font(label_num, &lv_font_montserrat_28, 0);
     lv_obj_set_style_text_color(label_num, lv_color_white(), 0);
     lv_obj_center(label_num);
+	
+	//txt
+    label_text = lv_label_create(screen);
+    lv_label_set_text(label_text, "Insert\nYour\nCARD"); 
+    lv_obj_set_style_text_line_space(label_text, 2, 0);//2px away each col
+    lv_obj_align(label_text, LV_ALIGN_LEFT_MID, 30, 0);
+    lv_obj_set_style_text_color(label_text, lv_color_black(), 0);
 }
 
 
@@ -205,14 +205,28 @@ void using_mode_switch(lv_event_t * e)
 	uintptr_t value = (uintptr_t)lv_event_get_param(e);//data store as addr
 	if(value==1)//so just read it
 	{
-		//disp_main
-		lv_obj_set_style_bg_color(card[0], lv_palette_main(LV_PALETTE_BLUE), 0);
-		lv_label_set_text(stat[0], "In\nUSE");
-		//disp_1
-		lv_obj_set_style_bg_color(blue_rect, lv_palette_main(LV_PALETTE_BLUE), 0);
-		lv_label_set_text(label_arrow, "");//hide the arrow
-		lv_label_set_text(label_text, "Enjoy!"); 
-		is_using=1;
+		if(card_balance>0)
+		{
+			//disp_main
+			lv_obj_set_style_bg_color(card[0], lv_palette_main(LV_PALETTE_BLUE), 0);
+			lv_label_set_text(stat[0], "In\nUSE");
+			//disp_1
+			lv_obj_set_style_bg_color(blue_rect, lv_palette_main(LV_PALETTE_BLUE), 0);
+			lv_label_set_text(label_arrow, "");//hide the arrow
+			lv_label_set_text_fmt(label_text, "ID:%d\n$%d.%d",card_id, card_balance/100,card_balance-card_balance/100*100); 
+			is_using=1;
+		}
+		else//no balance
+		{
+			//disp_main
+			lv_obj_set_style_bg_color(card[0], lv_palette_main(LV_PALETTE_ORANGE), 0);
+			lv_label_set_text(stat[0], "Low\nBalance");
+			//disp_1
+			lv_obj_set_style_bg_color(blue_rect, lv_palette_main(LV_PALETTE_ORANGE), 0);
+			lv_label_set_text(label_arrow, "$?");//where is your money?
+			lv_label_set_text_fmt(label_text, "ID:%d\n$%s%d.%d",card_id,(card_balance<0)?"-":"", abs(card_balance/100),abs(card_balance-card_balance/100*100)); 
+			is_using=1;
+		}
 	}
 	else if(value==0)
 	{
@@ -225,10 +239,10 @@ void using_mode_switch(lv_event_t * e)
 		lv_label_set_text(label_arrow, LV_SYMBOL_LEFT);//show the arrow
 		is_using=0;
 	}
-	else if(value==3)//disp_1 tells user not to tap
+	else if(value==3)//disp_1 tells user to tap for reg and add value
 	{
-		lv_obj_set_style_bg_color(blue_rect, lv_palette_main(LV_PALETTE_RED), 0);
-		lv_label_set_text(label_text, "If not\nYours.\nDo\nnot Tap."); 
-		lv_label_set_text(label_arrow, LV_SYMBOL_CLOSE);//show cross
+		lv_obj_set_style_bg_color(blue_rect, lv_color_white(), 0);//invisible, label_text decleared later than blue_rect, won't block
+		lv_label_set_text(label_text, "TAP your CARD"); 
+		lv_label_set_text(label_arrow, LV_SYMBOL_NEW_LINE);//show cross
 	}
 }

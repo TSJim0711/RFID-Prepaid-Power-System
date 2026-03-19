@@ -40,6 +40,9 @@ lv_display_t* lv_port_disp_sub_init(void);
 
 typedef enum{REGISTRATION=-1 ,NORMAL, TOPPING_UP} task;
 extern task rfid_reader_task;
+
+extern int card_id;
+extern int card_balance;
 /**********************
  *      MACROS
  **********************/

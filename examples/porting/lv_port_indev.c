@@ -11,10 +11,13 @@
  *********************/
 #include <stdbool.h>
 #include <stdio.h>
+
 #include "lvgl.h"
 #include "lv_port_indev.h"
 #include "lcd/tft_touch.h"
 #include "rfid/MFRC522.h"
+
+#include "stm32f4xx.h"
 
 /*********************
  *      DEFINES
@@ -50,6 +53,8 @@ static void button_init(void);
 static void button_read(lv_indev_t * indev, lv_indev_data_t * data);
 static int8_t button_get_pressed_id(void);
 static bool button_is_pressed(uint8_t id);
+
+static void relay_init(void);
 
 static void rfid_reader_init(void);
 static void rfid_read_handler(lv_indev_t * indev_drv, lv_indev_data_t * data);
@@ -173,6 +178,11 @@ void lv_port_indev_init(lv_display_t* disp_main, lv_display_t* disp_sub)
     lv_indev_set_display(indev_button, disp_sub);//affect to small lcd screen
     lv_indev_set_button_points(indev_button, btn_points);
 
+	//-------
+    //Relay
+    //-------
+	relay_init();
+	
     //-------
     //RFID reader
     //-------
@@ -450,6 +460,22 @@ static bool button_is_pressed(uint8_t id)
     return false;
 }
 
+//-------
+//Relay
+//-------
+void relay_init(void)
+{
+	//PEout6 Relay to power supply init
+	GPIO_InitTypeDef GPIO_InitStructure;
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Speed = GPIO_High_Speed;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOE, &GPIO_InitStructure);
+}
+
 //-----
 //RFID reader
 //-----
@@ -468,6 +494,12 @@ extern uint32_t SLOT_1_IN_USE_SIG;
 
 task rfid_reader_task;
 bool card_present=false;
+int id_cnt=1001;//first user id is 1001
+
+int card_id;
+int card_balance;
+int occupied_time_T_Plus;
+bool pay2use=true;
 
 void rfid_read_handler(lv_indev_t * indev_drv, lv_indev_data_t * data)
 {
@@ -475,24 +507,34 @@ void rfid_read_handler(lv_indev_t * indev_drv, lv_indev_data_t * data)
 	if(card_present==false)//if found card
 	{
 		status = MFRC522_Request(0x52, card_pydebuf);//check if card on scanner
-		printf("Read card status: %d\r\n", status);
 		if(status!=0)//not found card
 		{
 			printf("No Card Read.\r\n");
+			PEout(6)=0;
 			Write_MFRC522(CommandReg, PCD_IDLE);//clear cmd s
 			ClearBitMask(Status2Reg, 0x08);//shut down auth layer
+			pay2use=true;
 			return;
 		}
 		status=MFRC522_Anticoll(card_numberbuf);//select card to read, prevent multi caard reading mixed	
 		card_size=MFRC522_SelectTag(card_numberbuf);//commu with selected card
 		status=MFRC522_Auth(0x60, 4, card_key0Abuf, card_numberbuf);//unlock sector 1 aka block 4~6
 		printf("RFID Task:%d\r\n",rfid_reader_task);
-		if(rfid_reader_task==NORMAL)
+		if(rfid_reader_task==NORMAL && pay2use==true)
 		{
-			printf("Reading\r\n");
-			status=MFRC522_Read(4, card_readbuf);//read data from card
+			status=MFRC522_Read(4, card_readbuf);//read id from card
 			if(data->state==LV_INDEV_STATE_RELEASED)
 			{
+				card_id = (uint32_t)card_readbuf[0] | ((uint32_t)card_readbuf[1] << 8) | ((uint32_t)card_readbuf[2] << 16);
+				status=MFRC522_Read(5, card_readbuf);//read balance from card
+				card_balance = (uint32_t)card_readbuf[0] | ((uint32_t)card_readbuf[1] << 8) | ((uint32_t)card_readbuf[2] << 16)-0;//charge $0 per use
+				if(card_readbuf[5]==1)//sign disgit, if 1-> change sign
+				{	card_balance=-card_balance;}
+				else 
+				{	PEout(6)=1;}
+				
+				occupied_time_T_Plus=0;
+				printf("Cur card id:%d; Balance:%d; T+%d\r\n",card_id,card_balance,occupied_time_T_Plus);
 				lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)1);//send 1 msg, note that I use store data with addr, it is clever, gemini said so
 				lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 500);
 				card_present=true;
@@ -502,62 +544,108 @@ void rfid_read_handler(lv_indev_t * indev_drv, lv_indev_data_t * data)
 		{
 			status=0;//0 is good return from MFRC522
 			printf("Registing\r\n");
-			printf("Status1:%d\r\n",status);
+			PEout(6)=0;
+			MFRC522_Read(5, card_readbuf);
+			if(card_readbuf[5]==1)//prevent re-register card, reset negative balance
+			{
+				printf("Nice try ;)\r\n");
+				lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)1);//Use disp_1 NORMAL layout, there is ID and balance. U may ask why? Because there is one. No custom layout for reg and top up done.
+				pay2use=false;
+				return;
+			}
+			
 			memset(card_writebuf, 0, 16);
-			card_writebuf[0] = 2; //assign id:2, balance:0
+			card_writebuf[0] = (uint8_t)(id_cnt & 0xFF);//assign id, first is 1001
+			card_writebuf[1] = (uint8_t)((id_cnt >> 8) & 0xFF);
+			card_writebuf[2] = (uint8_t)((id_cnt >> 16) & 0xFF);
 			status=MFRC522_Write(4,card_writebuf);
-			printf("Status2:%d\r\n",status);
+			id_cnt++;
 			if(status==0)
 			{
 				memset(card_writebuf, 0, 16); //assign balance:0, just for cleaning up block 2 in case random data
 				status=MFRC522_Write(5,card_writebuf);
-				printf("Status3:%d\r\n",status);
 				if(status==0)
 				{
 					printf("Register Done.\r\n");
 					rfid_reader_task = NORMAL;
 					MFRC522_Halt();//sleep the card 
+					lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)1);//Use disp_1 NORMAL layout, there is ID and balance. U may ask why? Because there is one. No custom layout for reg and top up done.
+					pay2use=false;
 				}
 			}
 		}
 		else//if larger/eql 1, treat as top up value
 		{
-			printf("Topping up\r\n");
+			printf("Topping up $%d\r\n",rfid_reader_task);
+			PEout(6)=0;
 			status=0;
 			status=MFRC522_Read(5, card_readbuf);
-			printf("Status1:%d\r\n",status);
 			if(status==0)
 			{
 				//cal total balance in card
-				uint32_t balance=0;
-				balance = (uint32_t)card_readbuf[0] | ((uint32_t)card_readbuf[1] << 8) | ((uint32_t)card_readbuf[2] << 16);
+				int32_t balance=0;
+				balance = (uint32_t)card_readbuf[0] | ((uint32_t)card_readbuf[1] << 8) | ((uint32_t)card_readbuf[2] << 16);//256^2/100 is way enough for balance
+				if(card_readbuf[5]==1)//sign digit, if 1-> change sign
+					balance=-balance;
 				//add value
-				balance+=rfid_reader_task;
+				balance+=rfid_reader_task*100;//two digits for decimals
 				memset(card_writebuf, 0, sizeof(card_writebuf));//clean up buffer
-				card_writebuf[0] = (uint8_t)(balance & 0xFF);//save new balance to write buffer
-				card_writebuf[1] = (uint8_t)((balance >> 8) & 0xFF);
-				card_writebuf[2] = (uint8_t)((balance >> 16) & 0xFF);
+				card_writebuf[0] = (uint8_t)(abs(balance) & 0xFF);//save new balance to write buffer
+				card_writebuf[1] = (uint8_t)((abs(balance) >> 8) & 0xFF);
+				card_writebuf[2] = (uint8_t)((abs(balance) >> 16) & 0xFF);
+				if(balance<0)
+					card_writebuf[5]=1;//set sign digit if still negative
 				//re-write
 				status=MFRC522_Write(5,card_writebuf);
-				printf("Status2:%d\r\n",status);
 				if(status==0)
 				{
 					printf("Top up done.\r\n");
 					rfid_reader_task = NORMAL;
 					MFRC522_Halt();//sleep the card
+					lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)1);//Use disp_1 NORMAL layout, there is ID and balance. U may ask why? Because there is one! No custom layout for reg and top up done.
+					pay2use=false;
 				}
 			}
 		}
     }
 	else if(card_present==true)//only rfid_reader_task==NORMAL will set card_present =1
 	{
-		status=MFRC522_Read(4, card_readbuf);
+		status=MFRC522_Read(4, card_readbuf);//read id from card
 		if(status!=0)//read failed = card exist no more
 		{
 			printf("read failed \r\n");
 			card_present=false;
 			lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)0);//send 0 msg, disp_1 show insert card
 			lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 100);
+		}
+		else
+		{
+			card_id = (uint32_t)card_readbuf[0] | ((uint32_t)card_readbuf[1] << 8) | ((uint32_t)card_readbuf[2] << 16);
+			status=MFRC522_Read(5, card_readbuf);//read balance from card
+			occupied_time_T_Plus++;
+			
+			if(occupied_time_T_Plus%5==0 && card_balance>0 && pay2use==true)//pay $2.56 every 5 sec (I do know %10=every 5 sec, but my board %10=10 sec, idk why.)
+			{
+				card_balance = (uint32_t)card_readbuf[0] | ((uint32_t)card_readbuf[1] << 8) | ((uint32_t)card_readbuf[2] << 16);
+				if(card_readbuf[5]==1)//sign disgit, if 1-> change sign
+					card_balance=-card_balance;
+
+				card_balance-=256;//pay as u use
+				
+				memset(card_writebuf, 0, sizeof(card_writebuf));//clean up buffer
+				card_writebuf[0] = (uint8_t)(abs(card_balance) & 0xFF);//save new balance to write buffer
+				card_writebuf[1] = (uint8_t)((abs(card_balance) >> 8) & 0xFF);
+				card_writebuf[2] = (uint8_t)((abs(card_balance) >> 16) & 0xFF);
+				if(card_balance<0)
+				{
+					card_writebuf[5]=1;//sign digit
+					PEout(6)=0;
+				}
+				
+				MFRC522_Write(5,card_writebuf);//writeback
+				lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)1);//Send again, in order to refresh balance on disp_1
+			}
+			printf("Cur card id:%d; Balance:%d; T+%d\r\n",card_id,card_balance,occupied_time_T_Plus);
 		}
 	}
 }

@@ -134,6 +134,6 @@ static void btn_amount_cb(lv_event_t * e) {
 	int topn_amount = (int)(uintptr_t)lv_event_get_user_data(e);
     lv_label_set_text_fmt(label_txt_row_1, "Topping Up $%d",topn_amount);
 	lv_obj_remove_flag(label_txt_row_2, LV_OBJ_FLAG_HIDDEN);
-	rfid_reader_task = TOPPING_UP;
+	rfid_reader_task = topn_amount;
 	lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)3);//send 3 msg, to change disp_1 content
 }
