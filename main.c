@@ -154,7 +154,7 @@ lv_obj_t * blue_rect;
 lv_obj_t * swc_mode_switcher;
 lv_obj_t * label_text;
 lv_obj_t * label_arrow;
-uint32_t SLOT_1_IN_USE_SIG;//DISP1's seat in use singal
+uint32_t SLOT_1_IN_USE_SIG;//DISP1's in use singal
 static void using_mode_switch(lv_event_t * e);
 void display_sub_init()
 {
@@ -212,8 +212,9 @@ void using_mode_switch(lv_event_t * e)
 			lv_label_set_text(stat[0], "In\nUSE");
 			//disp_1
 			lv_obj_set_style_bg_color(blue_rect, lv_palette_main(LV_PALETTE_BLUE), 0);
-			lv_label_set_text(label_arrow, "");//hide the arrow
+			lv_label_set_text(label_arrow, LV_SYMBOL_CHARGE);//show cross
 			lv_label_set_text_fmt(label_text, "ID:%d\n$%d.%d",card_id, card_balance/100,card_balance-card_balance/100*100); 
+			
 			is_using=1;
 		}
 		else//no balance
@@ -224,7 +225,7 @@ void using_mode_switch(lv_event_t * e)
 			//disp_1
 			lv_obj_set_style_bg_color(blue_rect, lv_palette_main(LV_PALETTE_ORANGE), 0);
 			lv_label_set_text(label_arrow, "$?");//where is your money?
-			lv_label_set_text_fmt(label_text, "ID:%d\n$%s%d.%d",card_id,(card_balance<0)?"-":"", abs(card_balance/100),abs(card_balance-card_balance/100*100)); 
+			lv_label_set_text_fmt(label_text, "ID:%d\n$%s%d.%02d",card_id,(card_balance<0)?"-":"", abs(card_balance/100),abs(card_balance-card_balance/100*100)); 
 			is_using=1;
 		}
 	}
@@ -243,6 +244,6 @@ void using_mode_switch(lv_event_t * e)
 	{
 		lv_obj_set_style_bg_color(blue_rect, lv_color_white(), 0);//invisible, label_text decleared later than blue_rect, won't block
 		lv_label_set_text(label_text, "TAP your CARD"); 
-		lv_label_set_text(label_arrow, LV_SYMBOL_NEW_LINE);//show cross
+		lv_label_set_text(label_arrow, LV_SYMBOL_LEFT);//show cross
 	}
 }

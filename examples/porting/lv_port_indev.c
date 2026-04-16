@@ -513,14 +513,13 @@ void rfid_read_handler(lv_indev_t * indev_drv, lv_indev_data_t * data)
 			PEout(6)=0;
 			Write_MFRC522(CommandReg, PCD_IDLE);//clear cmd s
 			ClearBitMask(Status2Reg, 0x08);//shut down auth layer
-			pay2use=true;
 			return;
 		}
 		status=MFRC522_Anticoll(card_numberbuf);//select card to read, prevent multi caard reading mixed	
 		card_size=MFRC522_SelectTag(card_numberbuf);//commu with selected card
 		status=MFRC522_Auth(0x60, 4, card_key0Abuf, card_numberbuf);//unlock sector 1 aka block 4~6
 		printf("RFID Task:%d\r\n",rfid_reader_task);
-		if(rfid_reader_task==NORMAL && pay2use==true)
+		if(rfid_reader_task==NORMAL)
 		{
 			status=MFRC522_Read(4, card_readbuf);//read id from card
 			if(data->state==LV_INDEV_STATE_RELEASED)
@@ -530,13 +529,10 @@ void rfid_read_handler(lv_indev_t * indev_drv, lv_indev_data_t * data)
 				card_balance = (uint32_t)card_readbuf[0] | ((uint32_t)card_readbuf[1] << 8) | ((uint32_t)card_readbuf[2] << 16)-0;//charge $0 per use
 				if(card_readbuf[5]==1)//sign disgit, if 1-> change sign
 				{	card_balance=-card_balance;}
-				else 
-				{	PEout(6)=1;}
 				
 				occupied_time_T_Plus=0;
 				printf("Cur card id:%d; Balance:%d; T+%d\r\n",card_id,card_balance,occupied_time_T_Plus);
 				lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)1);//send 1 msg, note that I use store data with addr, it is clever, gemini said so
-				lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 500);
 				card_present=true;
 			}
 		}
@@ -615,21 +611,24 @@ void rfid_read_handler(lv_indev_t * indev_drv, lv_indev_data_t * data)
 		{
 			printf("read failed \r\n");
 			card_present=false;
+			pay2use=true;
 			lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)0);//send 0 msg, disp_1 show insert card
 			lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 100);
 		}
 		else
 		{
+			lv_timer_set_period(lv_indev_get_read_timer(indev_rfid_scanner), 500);//lower card reading rate
 			card_id = (uint32_t)card_readbuf[0] | ((uint32_t)card_readbuf[1] << 8) | ((uint32_t)card_readbuf[2] << 16);
 			status=MFRC522_Read(5, card_readbuf);//read balance from card
-			occupied_time_T_Plus++;
 			
 			if(occupied_time_T_Plus%5==0 && card_balance>0 && pay2use==true)//pay $2.56 every 5 sec (I do know %10=every 5 sec, but my board %10=10 sec, idk why.)
 			{
 				card_balance = (uint32_t)card_readbuf[0] | ((uint32_t)card_readbuf[1] << 8) | ((uint32_t)card_readbuf[2] << 16);
 				if(card_readbuf[5]==1)//sign disgit, if 1-> change sign
+				{
 					card_balance=-card_balance;
-
+				}else if(pay2use==true)
+					PEout(6)=1;
 				card_balance-=256;//pay as u use
 				
 				memset(card_writebuf, 0, sizeof(card_writebuf));//clean up buffer
@@ -638,14 +637,15 @@ void rfid_read_handler(lv_indev_t * indev_drv, lv_indev_data_t * data)
 				card_writebuf[2] = (uint8_t)((abs(card_balance) >> 16) & 0xFF);
 				if(card_balance<0)
 				{
+					PEout(6)=0;//no money, shut down
 					card_writebuf[5]=1;//sign digit
-					PEout(6)=0;
 				}
 				
 				MFRC522_Write(5,card_writebuf);//writeback
 				lv_obj_send_event(lv_layer_sys(), SLOT_1_IN_USE_SIG, (void *)1);//Send again, in order to refresh balance on disp_1
 			}
-			printf("Cur card id:%d; Balance:%d; T+%d\r\n",card_id,card_balance,occupied_time_T_Plus);
+			occupied_time_T_Plus++;
+			printf("Current card id:%d; Balance:%d; T+%d\r\n",card_id,card_balance,occupied_time_T_Plus);
 		}
 	}
 }
